@@ -1,4 +1,5 @@
 """PC Diagnostic: local, bounded prank. No hardware diagnostics are performed."""
+import random
 import sys
 import tempfile
 from pathlib import Path
@@ -11,6 +12,10 @@ from PySide6.QtWidgets import (
     QVBoxLayout, QWidget,
 )
 from media import decrypt
+
+MAX_VIDEO_WINDOWS = 12
+SPAWN_INTERVAL_MS = 150
+PRANK_DURATION_MS = 45_000
 
 
 class Prepare(QThread):
@@ -57,11 +62,16 @@ class VideoWindow(QWidget):
             lambda *_: controller.status.setText(
                 'Falha na reprodução. Use MP4 H.264/AAC. Esc para encerrar.'))
         self.player.setSource(QUrl.fromLocalFile(path))
+        self.scatter()
+
+    def scatter(self):
         area = QApplication.primaryScreen().availableGeometry()
-        width, height = min(420, area.width() * 2 // 3), min(320, area.height() * 2 // 3)
+        width = min(360, area.width() * 2 // 3)
+        height = min(260, area.height() * 2 // 3)
         self.setGeometry(
-            area.x() + (area.width() - width) * (index % 3) // 2,
-            area.y() + (area.height() - height) * (index // 3), width, height)
+            area.x() + random.randint(0, max(0, area.width() - width)),
+            area.y() + random.randint(0, max(0, area.height() - height)),
+            width, height)
 
     def closeEvent(self, event):
         event.accept()
@@ -85,6 +95,7 @@ class Diagnostic(QWidget):
         super().__init__()
         self.stopping = False
         self.windows = []
+        self.recycle_index = 0
         self.worker = None
         self.temp = tempfile.TemporaryDirectory(prefix='PcDiagnostic-')
         self.setWindowTitle('PC Diagnostic')
@@ -114,7 +125,7 @@ class Diagnostic(QWidget):
         self.deadline.setSingleShot(True)
         self.deadline.timeout.connect(self.stop)
         self.spawn_timer = QTimer(self)
-        self.spawn_timer.setInterval(220)
+        self.spawn_timer.setInterval(SPAWN_INTERVAL_MS)
         self.spawn_timer.timeout.connect(self.spawn)
         self.escape_filter = EscapeFilter(self)
         QApplication.instance().installEventFilter(self.escape_filter)
@@ -161,18 +172,27 @@ class Diagnostic(QWidget):
                 'SISTEMA HACKEADO E COMPROMETIDO!\n\n'
                 'Pegadinha :) Nenhuma invasão aconteceu.\n'
                 'Esc ou fechar qualquer janela encerra tudo.')
-            self.deadline.start(45_000)
+            self.deadline.start(PRANK_DURATION_MS)
             self.spawn()
             self.spawn_timer.start()
 
     def spawn(self):
-        if self.stopping or len(self.windows) >= 6:
+        if self.stopping:
             self.spawn_timer.stop()
             return
-        window = VideoWindow(self, self.path, len(self.windows))
-        self.windows.append(window)
-        window.show()
-        window.player.play()
+        if len(self.windows) < MAX_VIDEO_WINDOWS:
+            window = VideoWindow(self, self.path, len(self.windows))
+            self.windows.append(window)
+            window.show()
+            window.player.play()
+        else:
+            # Reuse existing players to keep the visual burst going with bounded resources.
+            window = self.windows[self.recycle_index]
+            self.recycle_index = (self.recycle_index + 1) % len(self.windows)
+            window.hide()
+            window.scatter()
+            window.show()
+            window.raise_()
 
     def stop(self):
         if self.stopping:
