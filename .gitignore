@@ -6,5 +6,3 @@ __pycache__/
 *.pyc
 *.spec
 build/
-# Local documentation: intentionally not published yet.
-/README.md
