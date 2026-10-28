@@ -1,40 +1,58 @@
 # Performance Monitor
 
-O **Performance Monitor** é uma aplicação desktop desenvolvida em Python, com interface gráfica em **PySide6**, criada para estudar como um programa pode aparentar uma finalidade legítima e executar um comportamento diferente do esperado — uma característica associada a cavalos de Troia (trojans).
+**Performance Monitor** is an educational Python desktop application for Windows that explores how software can present a legitimate-looking interface while performing an unexpected action—a form of deception associated with Trojan horses.
 
-A interface apresenta um menu de diagnóstico de componentes do computador. Ao iniciar a análise, o aplicativo exibe progresso simulado, interrompe a sequência com um alerta fictício de comprometimento e abre janelas reproduzindo Bad Apple. A mensagem também revela que se trata de uma pegadinha.
+The application presents a PC diagnostic menu, displays simulated progress, and then interrupts the sequence with a fictional security alert and multiple windows playing Bad Apple. The alert reveals that the sequence is a prank.
 
-## Objetivo do projeto
+## Download and run
 
-Explorar o desenvolvimento de aplicações desktop e compreender, por meio de uma simulação local, conceitos de disfarce de funcionalidade e engenharia social associados a trojans. O projeto também exercita programação orientada a objetos, eventos de interface, tarefas em segundo plano, criptografia de recursos e distribuição de executáveis para Windows.
+**Download [PcDiagnostic.exe from the latest GitHub release](https://github.com/TamyDB/performance-monitor/releases/latest) and open it on Windows.**
 
-O aplicativo não implementa acesso remoto, coleta de credenciais, exfiltração, persistência ou propagação. O diagnóstico é visual e simulado: não mede o desempenho nem verifica a saúde dos componentes. A criptografia é aplicada ao vídeo distribuído com o programa, não aos arquivos do usuário.
+No Python installation, dependency setup, or separate video download is required to run the packaged application.
 
-## Funcionalidades
+To stop the application:
 
-- Seleção de processador, memória RAM, placa de vídeo ou armazenamento.
-- Preparação do vídeo em uma thread separada e barra de progresso simulada.
-- Alerta fictício de invasão, com revelação da pegadinha.
-- Janelas de vídeo surgindo a cada 150 ms em posições aleatórias.
-- Limite de 12 janelas simultâneas; depois disso, reutiliza as existentes em novas posições.
-- Reprodução em loop, com áudio em apenas uma janela.
-- Encerramento de toda a aplicação por `Esc` com uma janela do app em foco, ao fechar qualquer janela ou automaticamente 45 segundos após o alerta.
+- Press **Esc** while any application window has focus.
+- Close any application window.
+- Wait for the automatic shutdown, **45 seconds after the alert**.
 
-A reprodução simultânea consome CPU, memória e GPU; o limite de janelas reduz o crescimento do consumo, mas não garante desempenho em qualquer computador. Use a simulação em máquinas próprias ou com autorização dos participantes.
+## Project purpose
 
-## Tecnologias utilizadas
+This project uses a local simulation to explore deceptive interfaces and social engineering concepts associated with Trojans. It also provides practice with desktop development, object-oriented programming, event handling, background tasks, resource encryption, and Windows executable packaging.
 
-| Tecnologia | Uso |
+The diagnostic interface is simulated: it does not measure system performance or check hardware health. The application does not implement remote access, credential collection, data exfiltration, persistence, or propagation. Encryption applies to the bundled video resource, not to the user's files.
+
+## Features
+
+- Component selection: CPU, RAM, graphics card, and storage.
+- Video preparation in a background thread and simulated diagnostic progress.
+- Fictional compromise alert with a prank reveal.
+- Video windows appearing every **150 ms** at random screen positions.
+- A maximum of **12 simultaneous video windows**, after which existing windows reappear at new positions.
+- Looping playback with audio enabled in only one window.
+- Exit through Esc, closing any window, or the 45-second timeout.
+
+Simultaneous video playback consumes CPU, memory, and GPU resources. The window limit bounds the number of players; performance still depends on the computer. Run the simulation on your own devices or with the participants' permission.
+
+## Technologies
+
+| Technology | Purpose |
 | --- | --- |
-| Python | Lógica e organização orientada a objetos |
-| PySide6 / Qt | Interface gráfica, eventos e reprodução de áudio e vídeo |
-| cryptography | Criptografia autenticada AES-256-GCM do recurso de vídeo |
-| PyInstaller | Empacotamento em um executável para Windows |
-| GitHub Actions | Build no Windows e publicação de releases |
+| Python | Application logic and object-oriented structure |
+| PySide6 / Qt | Desktop interface, events, and audio/video playback |
+| cryptography | AES-256-GCM authenticated encryption of the video resource |
+| PyInstaller | Packaging the application into a Windows executable |
+| GitHub Actions | Windows builds and release publishing |
 
-## Executar no Windows
+## Development
 
-Com Python de 64 bits instalado, coloque `bad-apple.mp4` na raiz do projeto. Prefira um MP4 com vídeo H.264 e áudio AAC. No PowerShell:
+The following steps are for contributors who want to run the source or build their own executable. Release users can use the download above.
+
+### Run from source
+
+On Windows, install 64-bit Python and place `bad-apple.mp4` in the project root. An MP4 encoded with H.264 video and AAC audio is recommended for compatibility.
+
+From PowerShell in the project directory:
 
 ```powershell
 python -m venv .venv
@@ -42,57 +60,60 @@ python -m venv .venv
 .\.venv\Scripts\python.exe app.py
 ```
 
-Em desenvolvimento, o programa lê o MP4 diretamente. As dependências estão declaradas em `requirements.txt`.
+Development mode reads the local MP4 directly. Dependencies are declared in `requirements.txt`.
 
-## Gerar o executável
+### Build a Windows executable
 
-Execute o build no Windows:
+Run the build on Windows:
 
 ```powershell
 .\.venv\Scripts\python.exe build.py
 ```
 
-Para usar outro arquivo:
+To use a different video path:
 
 ```powershell
 .\.venv\Scripts\python.exe build.py --video 'C:\Videos\bad-apple.mp4'
 ```
 
-O resultado é `dist\PcDiagnostic.exe`. O executável inclui o interpretador Python, as bibliotecas necessárias e o vídeo criptografado. O destinatário não precisa instalar Python. O empacotamento em arquivo único extrai bibliotecas temporárias ao iniciar; não significa execução inteiramente em memória.
+The output is `dist\PcDiagnostic.exe`. The executable bundles the Python interpreter, required libraries, and encrypted video. Single-file packaging extracts runtime libraries to a temporary directory when launched; it does not mean that everything runs exclusively in memory.
 
-### Releases pelo GitHub Actions
+### GitHub Actions releases
 
-O workflow `.github/workflows/release.yml` executa em Windows x64 com Python 3.12. Ele pode ser iniciado manualmente pela aba **Actions** ou pelo envio de uma tag `v*`.
+The workflow in `.github/workflows/release.yml` builds on Windows x64 using Python 3.12. Trigger it manually from the **Actions** tab or by pushing a tag matching `v*`.
 
-Como os arquivos `*.mp4` são ignorados pelo Git, informe uma URL HTTPS direta no campo `video_url` da execução manual ou configure a variável de repositório `BAD_APPLE_VIDEO_URL` em **Settings → Secrets and variables → Actions → Variables**.
+Because `*.mp4` files are ignored by Git, provide a direct HTTPS video URL through either:
 
-O workflow baixa o vídeo, verifica a sintaxe e a criptografia, gera o executável e publica uma release com `PcDiagnostic.exe` e `SHA256SUMS.txt`. Também salva esses arquivos como artifact por 14 dias. Em execuções manuais, a tag da release é gerada a partir do identificador e da tentativa da execução.
+- The `video_url` input when starting the workflow manually.
+- The repository variable `BAD_APPLE_VIDEO_URL`, under **Settings → Secrets and variables → Actions → Variables**.
 
-## Criptografia e limites de proteção
+The workflow downloads and encrypts the video during the build, checks Python syntax, runs the encryption tests, and publishes a release containing `PcDiagnostic.exe` and `SHA256SUMS.txt`. It also retains these files as a workflow artifact for 14 days. Manual runs generate a release tag from the workflow run ID and attempt number.
 
-Durante o build, são gerados uma chave AES de 256 bits e um nonce aleatório. O vídeo é criptografado com AES-GCM e incorporado ao executável junto com a chave. Isso evita distribuir um MP4 separado, mas **não impede extração por engenharia reversa**, pois o aplicativo precisa ter acesso à chave.
+## Video encryption and limitations
 
-Na versão empacotada, o vídeo é descriptografado antes da reprodução para `%TEMP%\PcDiagnostic-<identificador>\playback.mp4`. O conteúdo pode ser acessado nesse local durante a execução. O programa tenta removê-lo ao encerrar normalmente; interrupções forçadas ou arquivos ainda abertos podem deixar resíduos.
+Each build generates a random 256-bit AES key and nonce. The video is encrypted using AES-GCM and bundled into the executable alongside the key. This avoids distributing a separate MP4, but **does not prevent extraction through reverse engineering**, because the application needs the key to play the video.
 
-A implementação atual lê o vídeo inteiro em memória durante a criptografia e a descriptografia. A URL de origem também permanece pública se o arquivo estiver em uma hospedagem pública. O recurso não é proteção contra extração nem mecanismo de evasão de ferramentas de segurança.
+In the packaged application, the entire video is decrypted before playback into `%TEMP%\PcDiagnostic-<identifier>\playback.mp4`. The decrypted file can be accessed there while the application runs. The application attempts to remove it during normal shutdown; forced termination or open file handles can leave temporary files behind.
 
-## Estrutura
+The current implementation reads the entire video into memory during encryption and decryption. A publicly hosted source URL also remains publicly accessible. Resource encryption is not a mechanism for evading security tools or guaranteeing that users cannot extract the video.
 
-- `app.py`: interface, preparação, reprodução e encerramento.
-- `media.py`: criptografia e formato do recurso de vídeo.
-- `build.py`: preparação dos recursos e empacotamento.
-- `build.ps1`: atalho opcional para o build no PowerShell.
-- `tests/test_media.py`: testes de integridade e descriptografia.
-- `.github/workflows/release.yml`: build e publicação no GitHub.
+## Project structure
 
-## Validação
+- `app.py`: interface, video preparation, playback, and shutdown.
+- `media.py`: authenticated encryption and video resource format.
+- `build.py`: resource preparation and executable packaging.
+- `build.ps1`: optional PowerShell build shortcut.
+- `tests/test_media.py`: encryption integrity and decryption tests.
+- `.github/workflows/release.yml`: Windows build and release publishing.
 
-Para executar os testes de criptografia:
+## Testing
+
+Run the encryption tests with:
 
 ```powershell
 .\.venv\Scripts\python.exe -m unittest discover -s tests -v
 ```
 
-Os testes cobrem recuperação do conteúdo original e rejeição de dados adulterados, chave incorreta e formato inválido. Eles não validam a reprodução nem a interface.
+Tests cover recovery of the original content and rejection of tampered data, incorrect keys, and invalid resource formats. They do not validate the interface or media playback.
 
-A sintaxe e os testes de criptografia foram verificados no ambiente Linux de desenvolvimento. O comportamento visual e o executável precisam ser validados no Windows, incluindo saída por Esc, fechamento de janelas, limite de 45 segundos e limpeza dos temporários.
+Python syntax and encryption tests have been checked in the Linux development environment. The visual behavior and packaged executable still require validation on Windows, including Esc handling, window closing, the 45-second timeout, and temporary-file cleanup.
