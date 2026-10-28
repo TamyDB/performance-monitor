@@ -1,0 +1,10 @@
+.venv/
+dist/
+build-*/
+*.mp4
+__pycache__/
+*.pyc
+*.spec
+build/
+# Local documentation: intentionally not published yet.
+/README.md
